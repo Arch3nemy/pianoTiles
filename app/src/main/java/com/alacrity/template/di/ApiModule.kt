@@ -1,7 +1,6 @@
 package com.alacrity.template.di
 
 import android.app.Application
-import com.alacrity.template.api.Api
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -42,11 +41,6 @@ class ApiModule(private val url: String) {
             .build()
     }
 
-    @Singleton
-    @Provides
-    fun provideApi(retrofit: Retrofit): Api {
-        return retrofit.create(Api::class.java)
-    }
 
     @Singleton
     @Provides

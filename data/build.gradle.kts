@@ -34,10 +34,21 @@ android {
 dependencies {
     implementation(project(":domain"))
     retrofit()
+    compose()
+    log()
 }
 
 fun DependencyHandlerScope.retrofit() {
     implementation(Dependencies.retrofit.retrofit)
     implementation(Dependencies.retrofit.gson)
     implementation(Dependencies.retrofit.gsonConverter)
+}
+
+fun DependencyHandlerScope.compose() {
+    implementation(Dependencies.compose.runtime)
+    implementation(Dependencies.compose.ui)
+}
+
+fun DependencyHandlerScope.log() {
+    implementation(Dependencies.other.timber)
 }

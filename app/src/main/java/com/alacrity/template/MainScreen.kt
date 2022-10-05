@@ -1,19 +1,19 @@
 package com.alacrity.template
 
 import android.content.Context
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.LinearProgressIndicator
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.rememberScaffoldState
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.alacrity.template.theme.TemplateTypography
 import com.alacrity.template.ui.main.MainViewModel
-import com.alacrity.template.ui.main.models.enterScreen
-import com.alacrity.template.util.getScreenSize
+import com.alacrity.template.ui.main.models.*
+import com.alacrity.template.ui.main.views.LoadingAnimation
 import com.alacrity.template.view_states.MainViewState
 
 @Composable
@@ -23,6 +23,7 @@ fun MainScreen(
 ) {
 
     val state by viewModel.viewState.collectAsState()
+    val gameState by viewModel.gameState.collectAsState()
 
     when (state) {
         MainViewState.Loading -> {
@@ -31,28 +32,25 @@ fun MainScreen(
             }
         }
         is MainViewState.FinishedLoading -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = (state as MainViewState.FinishedLoading).numberWithFact.fact,
-                    style = TemplateTypography.h1
-                )
-            }
-        }
-        is MainViewState.NoItems -> {
-
+            LoadingAnimation(
+                gameState = gameState,
+                onTileClick = { viewModel.earnPoints() },
+                onNonTileClick = { viewModel.endGame() },
+                onRestartGameClick = { viewModel.restartGame() },)
         }
         is MainViewState.Error -> {
             /* ShowErrorView */
         }
 
-        is MainViewState.Refreshing -> {
-
-        }
         else -> Unit
     }
 
     LaunchedEffect(key1 = state, block = {
         viewModel.enterScreen()
     })
+
+    BackHandler {
+        viewModel.toggleAnim()
+    }
 
 }
