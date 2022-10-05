@@ -1,7 +1,10 @@
 package com.alacrity.template.ui.main
 
+import androidx.compose.runtime.MutableState
 import com.alacrity.template.ui.main.models.GameState
 import com.alacrity.template.ui.main.models.MainEvent
+import com.alacrity.template.ui.main.models.isAnimated
+import com.alacrity.template.ui.main.models.points
 import com.alacrity.template.use_cases.GetFactAboutNumberUseCase
 import com.alacrity.template.util.BaseViewModel
 import com.alacrity.template.view_states.MainViewState
@@ -25,6 +28,7 @@ class MainViewModel @Inject constructor(
             is Loading -> currentState.reduce(event)
             is Error -> currentState.reduce(event)
             is FinishedLoading -> currentState.reduce(event)
+            else -> Unit
         }
     }
 
@@ -32,7 +36,9 @@ class MainViewModel @Inject constructor(
         logReduce(event)
         when (event) {
             MainEvent.EnterScreen -> {
-                _viewState.value = FinishedLoading(true)
+                launch {
+                    _viewState.value = FinishedLoading(true)
+                }
             }
             else -> Unit
         }
@@ -47,24 +53,24 @@ class MainViewModel @Inject constructor(
         logReduce(event)
         when (event) {
             MainEvent.ToggleAnim -> {
-                val state = gameState.value
-                gameState.value = state.copy(isAnimated = !state.isAnimated)
+                gameState.value = gameState.value.copy(isAnimated = !gameState.isAnimated())
             }
             MainEvent.RestartGame -> {
                 launch {
                     _viewState.value = Loading
-                    delay(300)
                     gameState.value = GameState(isAnimated = true, points = 0)
+                    delay(300)
                     _viewState.value = FinishedLoading(true)
                 }
             }
             MainEvent.EndGame -> {
-                gameState.value = GameState(isAnimated = false, points = 0)
+                gameState.value = GameState(isAnimated = false, points = gameState.points())
             }
             MainEvent.EarnPoints -> {
-                val state = gameState.value
-                gameState.value =
-                    GameState(isAnimated = state.isAnimated, points = state.points + 100)
+                gameState.value = GameState(
+                    isAnimated = gameState.isAnimated(),
+                    points = gameState.points() + 100
+                )
             }
             else -> Unit
         }

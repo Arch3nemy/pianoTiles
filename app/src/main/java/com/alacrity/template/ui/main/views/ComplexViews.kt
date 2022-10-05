@@ -4,37 +4,34 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Divider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
-import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.Top
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.zIndex
 import com.alacrity.template.ui.main.models.GameState
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
 
 @Composable
-fun LoadingAnimation(
+fun AnimatedTiles(
     modifier: Modifier = Modifier,
     spaceBetween: Dp = 0.dp,
     travelDistance: Dp = 1500.dp,
     gameState: GameState,
     onTileClick: () -> Unit,
-    onNonTileClick: () -> Unit,
+    onGameLost: () -> Unit,
     onRestartGameClick: () -> Unit
 ) {
 
@@ -52,9 +49,11 @@ fun LoadingAnimation(
         isGameEndable = true
     }
 
-    LaunchedEffect(key1 = gameState) {
-        if (!gameState.isAnimated) {
-            tiles.forEach { animatable ->
+
+    tiles.forEach { animatable ->
+        LaunchedEffect(key1 = gameState) {
+            Timber.d("gameState key, $gameState")
+            if (!gameState.isAnimated) {
                 animatable.stop()
             }
         }
@@ -62,24 +61,34 @@ fun LoadingAnimation(
 
     tiles.forEachIndexed { index, animatable ->
         LaunchedEffect(key1 = animatable) {
-            animateTiles(index, animatable)
+           animateTiles(index, animatable)
         }
     }
 
+
     val circleValues = tiles.map { it.value }
     val distance = with(LocalDensity.current) { travelDistance.toPx() }
-    Box(modifier = Modifier
+
+    BoxWithConstraints(modifier = Modifier
         .fillMaxSize()
         .background(Color.LightGray)
-        .clickable(enabled = isGameEndable) {
-            onNonTileClick()
+        .clickable(enabled = isGameEndable && gameState.isAnimated) {
+            onGameLost()
         }) {
-        if (!gameState.isAnimated) RestartGameLabel(modifier = Modifier.align(Center)) {
+        if (!gameState.isAnimated) RestartGameLabel(modifier = Modifier
+            .align(Center)
+            .zIndex(2f)) {
             onRestartGameClick()
         }
         Column(modifier = Modifier.wrapContentSize()) {
-            PointsLabel(modifier = Modifier.align(CenterHorizontally), points = gameState.points)
-            Spacer(modifier = Modifier.fillMaxWidth().height(1.dp))
+            PointsLabel(modifier = Modifier
+                .align(CenterHorizontally)
+                .zIndex(2f), points = gameState.points)
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+            )
             Row(
                 modifier = modifier
                     .wrapContentSize(),
@@ -89,7 +98,8 @@ fun LoadingAnimation(
                     Tile(
                         modifier = Modifier.align(Top),
                         translation = value * distance,
-                        isAnimated = gameState.isAnimated
+                        isAnimated = gameState.isAnimated,
+                        onTileNotPressed = { onGameLost() }
                     ) {
                         onTileClick()
                     }
@@ -101,12 +111,12 @@ fun LoadingAnimation(
 }
 
 private suspend fun animateTiles(index: Int, animatable: Animatable<Float, AnimationVector1D>) {
-    delay(index * 1000L)
+    delay(index * (500..1250L).random())
     animatable.animateTo(
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
             animation = keyframes {
-                durationMillis = 6000
+                durationMillis = 5200
             },
             repeatMode = RepeatMode.Restart
         )
