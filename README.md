@@ -1,1 +1,1 @@
-# Template for kotlin gradle, jetpack compose and clean architecture 
+Piano tiles clone using modern technologies such as jetpack compose, coroutines and clean architecture 
