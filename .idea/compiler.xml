@@ -8,6 +8,8 @@
       <module name="Music.app" target="11" />
       <module name="Music.buildSrc" target="11" />
       <module name="Music.data" target="11" />
+      <module name="PianoTiles.app" target="11" />
+      <module name="PianoTiles.data" target="11" />
       <module name="pianoTilesCompose.buildSrc" target="11" />
       <module name="pianoTilesCompose.buildSrc.main" target="11" />
       <module name="pianoTilesCompose.buildSrc.test" target="11" />
