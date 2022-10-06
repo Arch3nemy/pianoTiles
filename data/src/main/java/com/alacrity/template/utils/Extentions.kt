@@ -5,5 +5,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.alacrity.template.entity.PlayerScore
+import com.alacrity.template.room.PlayerScoreTableItem
 
-//Returns pair of screen width and height
+fun PlayerScore.toTableItem(): PlayerScoreTableItem {
+    return PlayerScoreTableItem(id, score)
+}

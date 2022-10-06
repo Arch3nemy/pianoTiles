@@ -2,14 +2,10 @@ package com.alacrity.template
 
 import android.content.Context
 import androidx.activity.compose.BackHandler
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import com.alacrity.template.ui.main.MainViewModel
 import com.alacrity.template.ui.main.models.*
-import com.alacrity.template.ui.main.views.AnimatedTiles
-import com.alacrity.template.ui.main.views.LoadingView
+import com.alacrity.template.ui.main.views.*
 import com.alacrity.template.view_states.MainViewState
 
 @Composable
@@ -25,12 +21,29 @@ fun MainScreen(
         MainViewState.Loading -> {
             LoadingView()
         }
-        is MainViewState.FinishedLoading -> {
+        MainViewState.Paused -> {
+            LoadingView()
+        }
+        MainViewState.AuthorCredits -> {
+            AuthorView()
+        }
+        is MainViewState.ScoreTable -> {
+            ScoreTableView((state as MainViewState.ScoreTable).scores)
+        }
+        MainViewState.MainMenu -> {
+            MainMenuScreen(
+                onPlayClick = { viewModel.startGame() },
+                onRecordsClick = { viewModel.showScoreTable() },
+                onAuthorClick = { viewModel.showAuthorCredits() }
+            )
+        }
+        is MainViewState.GameScreen -> {
             AnimatedTiles(
                 gameState = gameState,
                 onTileClick = { viewModel.earnPoints() },
                 onGameLost = { viewModel.endGame() },
                 onRestartGameClick = { viewModel.restartGame() },
+                onBackToMenuClick = { viewModel.backToMenu() }
             )
         }
         is MainViewState.Error -> {
@@ -47,7 +60,9 @@ fun MainScreen(
     })
 
     BackHandler {
-        viewModel.toggleAnim()
+        if(state is MainViewState.GameScreen || state is MainViewState.AuthorCredits || state is MainViewState.ScoreTable) {
+            viewModel.backToMenu()
+        }
     }
 
 }

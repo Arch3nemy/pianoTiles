@@ -15,6 +15,14 @@ sealed class MainEvent: BaseEvent {
 
     object EarnPoints : MainEvent()
 
+    object StartGame : MainEvent()
+
+    object BackToMenu : MainEvent()
+
+    object ShowAuthorCredits : MainEvent()
+
+    object ShowScoreTable : MainEvent()
+
 }
 
 fun MainViewModel.enterScreen() {
@@ -35,4 +43,20 @@ fun MainViewModel.endGame() {
 
 fun MainViewModel.earnPoints() {
     obtainEvent(MainEvent.EarnPoints)
+}
+
+fun MainViewModel.startGame() {
+    obtainEvent(MainEvent.StartGame)
+}
+
+fun MainViewModel.backToMenu() {
+    obtainEvent(MainEvent.BackToMenu)
+}
+
+fun MainViewModel.showAuthorCredits() {
+    obtainEvent(MainEvent.ShowAuthorCredits)
+}
+
+fun MainViewModel.showScoreTable() {
+    obtainEvent(MainEvent.ShowScoreTable)
 }

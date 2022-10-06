@@ -28,4 +28,28 @@ val TemplateTypography = Typography(
         letterSpacing = 0.sp,
         color = Color.Black
     ),
+    h2 = TextStyle(
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 18.sp,
+        letterSpacing = 0.sp,
+        color = Color.White
+    ),
+    h3 = TextStyle(
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 19.sp,
+        letterSpacing = 0.sp,
+        color = Color.White
+    ),
+    h4 = TextStyle(
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 24.sp,
+        letterSpacing = 0.sp,
+        color = Color.Magenta
+    ),
+    h5 = TextStyle(
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 17.sp,
+        letterSpacing = 0.sp,
+        color = Color.Black
+    ),
 )

@@ -2,6 +2,8 @@ package com.alacrity.template.di
 
 import android.content.Context
 import android.content.res.Resources
+import androidx.room.Room
+import com.alacrity.template.room.AppDatabase
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
@@ -14,6 +16,23 @@ class AppModule(private val context: Context) {
     fun provideContext(): Context = context.applicationContext
 
     @Provides
-    fun provideResources(): Resources = context.resources
+    fun provideResources(): Resources = context.resources @Singleton
+
+
+    @Provides
+    fun provideDatabase(
+        app: Context
+    ) = Room.databaseBuilder(
+            app,
+            AppDatabase::class.java,
+            "tileScores"
+        ).build()
+
+    @Singleton
+    @Provides
+    fun provideDao(db: AppDatabase) = db.playerScoreDao()
+
+
+
 
 }

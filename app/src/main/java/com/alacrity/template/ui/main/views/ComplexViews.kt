@@ -4,23 +4,20 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Divider
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment.Companion.BottomCenter
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.Top
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.alacrity.template.ui.main.models.GameState
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import timber.log.Timber
 
 
@@ -32,9 +29,11 @@ fun AnimatedTiles(
     gameState: GameState,
     onTileClick: () -> Unit,
     onGameLost: () -> Unit,
-    onRestartGameClick: () -> Unit
+    onRestartGameClick: () -> Unit,
+    onBackToMenuClick: () -> Unit
 ) {
 
+    var isGameEndable by remember { mutableStateOf(false) }
     val tiles = mutableListOf(
         remember { Animatable(initialValue = 0f) },
         remember { Animatable(initialValue = 0f) },
@@ -42,32 +41,44 @@ fun AnimatedTiles(
         remember { Animatable(initialValue = 0f) }
     )
 
-    var isGameEndable by remember { mutableStateOf(false) }
-
     LaunchedEffect(key1 = Unit) {
         delay(3000)
         isGameEndable = true
     }
 
+    var duration by remember { mutableStateOf(5200) }
 
-    tiles.forEach { animatable ->
+    tiles.forEachIndexed { index, animatable ->
         LaunchedEffect(key1 = gameState) {
             Timber.d("gameState key, $gameState")
             if (!gameState.isAnimated) {
                 animatable.stop()
+            } else {
+                /* if (gameState.points in listOf(400, 800, 1200, 1600, 2000)) {
+                     animatable.stop()
+                     animateTiles(
+                         index = index,
+                         animatable = animatable,
+                         duration = duration
+                     )
+
+                 }*/
             }
         }
     }
 
     tiles.forEachIndexed { index, animatable ->
         LaunchedEffect(key1 = animatable) {
-           animateTiles(index, animatable)
+            Timber.d("Animate Tiles first time")
+            animateTiles(index = index, animatable = animatable, duration = duration)
         }
     }
 
 
     val circleValues = tiles.map { it.value }
     val distance = with(LocalDensity.current) { travelDistance.toPx() }
+    var accelerationIndex by remember { mutableStateOf(1f) }
+
 
     BoxWithConstraints(modifier = Modifier
         .fillMaxSize()
@@ -75,15 +86,23 @@ fun AnimatedTiles(
         .clickable(enabled = isGameEndable && gameState.isAnimated) {
             onGameLost()
         }) {
-        if (!gameState.isAnimated) RestartGameLabel(modifier = Modifier
-            .align(Center)
-            .zIndex(2f)) {
-            onRestartGameClick()
+        if (!gameState.isAnimated) {
+           EndGameMenu(
+               modifier = Modifier.zIndex(2f),
+               points = gameState.points,
+               onRestartGameClick = { onRestartGameClick() },
+               onBackToMenuClick = { onBackToMenuClick() }
+           )
         }
+
         Column(modifier = Modifier.wrapContentSize()) {
-            PointsLabel(modifier = Modifier
-                .align(CenterHorizontally)
-                .zIndex(2f), points = gameState.points)
+            if (gameState.isAnimated) {
+                PointsLabel(
+                    modifier = Modifier
+                        .align(CenterHorizontally)
+                        .zIndex(2f), points = gameState.points
+                )
+            }
             Spacer(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -97,29 +116,93 @@ fun AnimatedTiles(
                 circleValues.forEach { value ->
                     Tile(
                         modifier = Modifier.align(Top),
-                        translation = value * distance,
+                        translation = value * distance * accelerationIndex,
                         isAnimated = gameState.isAnimated,
                         onTileNotPressed = { onGameLost() }
                     ) {
                         onTileClick()
+                        accelerationIndex += 0.04f
+                        duration -= 50
                     }
                 }
             }
         }
-
     }
 }
 
-private suspend fun animateTiles(index: Int, animatable: Animatable<Float, AnimationVector1D>) {
-    delay(index * (500..1250L).random())
+
+private suspend fun animateTiles(
+    targetValue: Float = 1f,
+    withDelay: Boolean = true,
+    index: Int,
+    animatable: Animatable<Float, AnimationVector1D>,
+    duration: Int
+) {
+    if (withDelay) delay(index * (500..1000L).random())
     animatable.animateTo(
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
+        targetValue = targetValue,
+        animationSpec = repeatable(
+            iterations = 100,
             animation = keyframes {
-                durationMillis = 5200
+                durationMillis = duration
             },
             repeatMode = RepeatMode.Restart
         )
     )
 }
 
+@Composable
+fun MainMenuScreen(onPlayClick: () -> Unit, onRecordsClick: () -> Unit, onAuthorClick: () -> Unit) {
+    Box(
+        modifier = Modifier.fillMaxSize().background(Color.DarkGray), contentAlignment = Center
+    ) {
+        Column(
+            modifier = Modifier,
+            horizontalAlignment = CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            MenuComponent(modifier = Modifier.align(CenterHorizontally), text = "Play") {
+                onPlayClick()
+            }
+            Divider(
+                color = Color.Transparent,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(5.dp)
+            )
+            MenuComponent(modifier = Modifier.align(CenterHorizontally), text = "Records") {
+                onRecordsClick()
+            }
+            Divider(
+                color = Color.Transparent,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(5.dp)
+            )
+            MenuComponent(modifier = Modifier.align(CenterHorizontally), text = "Author") {
+                onAuthorClick()
+            }
+        }
+    }
+}
+
+/*
+ IconButton(
+                    modifier = Modifier.size(65.dp),
+                    onClick = { onPlayClick() }
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color.White)
+                    ) {
+                        Icon(
+                            modifier = Modifier.fillMaxSize(),
+                            imageVector = Icons.Filled.PlayArrow,
+                            contentDescription = "play game button",
+                            tint = Color.Magenta
+                        )
+                    }
+                }
+*/
