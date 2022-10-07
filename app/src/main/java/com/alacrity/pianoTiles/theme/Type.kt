@@ -15,11 +15,6 @@ private val Montserrat = FontFamily(
     Font(R.font.montserrat_semibold, FontWeight.W600)
 )
 
-private val Domine = FontFamily(
-    Font(R.font.domine_regular),
-    Font(R.font.domine_bold, FontWeight.Bold)
-)
-
 val PianoTilesTypography = Typography(
     defaultFontFamily = Montserrat,
     h1 = TextStyle(

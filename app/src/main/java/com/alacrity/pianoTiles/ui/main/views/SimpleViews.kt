@@ -24,14 +24,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -41,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import com.alacrity.pianoTiles.entity.PlayerScore
 import com.alacrity.pianoTiles.theme.*
 import com.alacrity.pianoTiles.ui.main.models.TileState
+import com.alacrity.pianoTiles.util.getScreenSize
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -50,14 +49,13 @@ fun Tile(
     modifier: Modifier,
     translation: Float,
     isAnimated: Boolean,
-    eventualTileHeight: Int = 180,
-    tileDisableDelay: Long = 3000,
+    tileHeight: Int = 180,
+    tileDisableDelay: Long = 2500,
     onTileNotPressed: () -> Unit,
     onClick: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     var tileState by remember { mutableStateOf(TileState(Color.DarkGray, true)) }
-    var tileHeight by remember { mutableStateOf(0) }
 
     fun disableTileForDelay() {
         scope.launch {
@@ -68,6 +66,7 @@ fun Tile(
     }
 
     val context = LocalContext.current
+    val heightToFitIn = getScreenSize<Float>().second + 400
 
     Box(
         modifier = modifier
@@ -75,8 +74,7 @@ fun Tile(
             .padding(all = 0.5.dp)
             .graphicsLayer {
                 translationY = translation
-                if (translation > 0) tileHeight = eventualTileHeight
-                if (translation > 1900f && translation < 2000f) {
+                if (translation > heightToFitIn && translation < heightToFitIn + 50) {
                     if (tileState.color == Color.DarkGray) {
                         tileState = TileState(UnpressedTileColor, false)
                         onTileNotPressed()
@@ -167,7 +165,7 @@ fun PointsLabel(modifier: Modifier, points: Int) {
         modifier = modifier
             .width(100.dp)
             .height(40.dp)
-            .padding(start = 5.dp, top = 5.dp),
+            .padding(start = 5.dp, top = 0.dp),
         text = daysCounter.toString(),
         textAlign = TextAlign.Center,
         style = PianoTilesTypography.h4.copy(fontSize = 36.sp)

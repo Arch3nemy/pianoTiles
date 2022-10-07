@@ -25,7 +25,7 @@ import timber.log.Timber
 fun AnimatedTiles(
     modifier: Modifier = Modifier,
     spaceBetween: Dp = 0.dp,
-    travelDistance: Dp = 1500.dp,
+    travelDistance: Dp = 1600.dp,
     gameState: GameState,
     onTileClick: () -> Unit,
     onGameLost: () -> Unit,
@@ -34,6 +34,16 @@ fun AnimatedTiles(
 ) {
 
     var isGameEndable by remember { mutableStateOf(false) }
+    var delay by remember {
+        mutableStateOf(
+            listOf(
+                0,
+                (1..900).random() * 1,
+                (1..900).random() * 2,
+                (1..900).random() * 3
+            )
+        )
+    }
     val tiles = mutableListOf(
         remember { Animatable(initialValue = 0f) },
         remember { Animatable(initialValue = 0f) },
@@ -46,29 +56,34 @@ fun AnimatedTiles(
         isGameEndable = true
     }
 
-    tiles.forEachIndexed { index, animatable ->
+    tiles.forEach { animatable ->
         LaunchedEffect(key1 = gameState) {
             Timber.d("gameState key, $gameState")
+            var maxRandomValue = 900
             if (!gameState.isAnimated) {
                 animatable.stop()
             } else {
-                /* if (gameState.points in listOf(400, 800, 1200, 1600, 2000)) {
-                     animatable.stop()
-                     animateTiles(
-                         index = index,
-                         animatable = animatable,
-                         duration = duration
-                     )
-
-                 }*/ //TODO try side effect (happens after recomposition completes)
+                if (gameState.points % 400 == 0 && gameState.points > 0) {
+                    val list = mutableListOf<Int>()
+                    for (i in 0 until 5) {
+                        list.add((0..maxRandomValue).random())
+                    }
+                    if(maxRandomValue > 400) maxRandomValue -= 5
+                    delay = list
+                }
             }
+
         }
     }
 
     tiles.forEachIndexed { index, animatable ->
         LaunchedEffect(key1 = animatable) {
             Timber.d("Animate Tiles first time")
-            animateTiles(index = index, animatable = animatable, duration = 5200)
+            animateTiles(
+                delay = delay[index],
+                animatable = animatable,
+                duration = 3800
+            )
         }
     }
 
@@ -85,9 +100,24 @@ fun AnimatedTiles(
             onGameLost()
         }) {
         Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            Divider(modifier = Modifier.width(1.dp).fillMaxHeight().background(Color.Black))
-            Divider(modifier = Modifier.width(1.dp).fillMaxHeight().background(Color.Black))
-            Divider(modifier = Modifier.width(1.dp).fillMaxHeight().background(Color.Black))
+            Divider(
+                modifier = Modifier
+                    .width(1.dp)
+                    .fillMaxHeight()
+                    .background(Color.Black)
+            )
+            Divider(
+                modifier = Modifier
+                    .width(1.dp)
+                    .fillMaxHeight()
+                    .background(Color.Black)
+            )
+            Divider(
+                modifier = Modifier
+                    .width(1.dp)
+                    .fillMaxHeight()
+                    .background(Color.Black)
+            )
         }
         if (!gameState.isAnimated) {
             EndGameMenu(
@@ -114,12 +144,15 @@ fun AnimatedTiles(
             )
             Row(
                 modifier = modifier
-                    .wrapContentSize(),
+                    .wrapContentSize()
+                    .offset(y = (-250).dp),
                 horizontalArrangement = Arrangement.spacedBy(spaceBetween)
             ) {
                 circleValues.forEach { value ->
                     Tile(
-                        modifier = Modifier.align(Top).weight(1f),
+                        modifier = Modifier
+                            .align(Top)
+                            .weight(1f),
                         translation = value * distance * accelerationIndex,
                         isAnimated = gameState.isAnimated,
                         onTileNotPressed = { onGameLost() }
@@ -136,18 +169,18 @@ fun AnimatedTiles(
 
 private suspend fun animateTiles(
     targetValue: Float = 1f,
-    withDelay: Boolean = true,
-    index: Int,
+    delay: Int,
     animatable: Animatable<Float, AnimationVector1D>,
     duration: Int
 ) {
-    if (withDelay) delay(index * (400..900L).random())
     animatable.animateTo(
         targetValue = targetValue,
         animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = duration
-            },
+            animation = tween(
+                durationMillis = duration,
+                delayMillis = delay,
+                easing = LinearEasing
+            ),
             repeatMode = RepeatMode.Restart
         )
     )

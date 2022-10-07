@@ -2,7 +2,6 @@ package com.alacrity.pianoTiles
 
 import android.content.Context
 import android.media.AudioManager
-import android.media.SoundPool
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,8 +21,6 @@ fun MainScreen(
 
     val state by viewModel.viewState.collectAsState()
     val gameState by viewModel.gameState.collectAsState()
-    val soundPool = SoundPool(20, AudioManager.STREAM_MUSIC, 0)
-    soundPool.load(context, R.raw.failsound, 1)
 
     when (state) {
         MainViewState.Loading -> {
@@ -52,7 +49,7 @@ fun MainScreen(
             AnimatedTiles(
                 gameState = gameState,
                 onTileClick = { viewModel.earnPoints() },
-                onGameLost = { viewModel.endGame(); soundPool.play(R.raw.failsound, 1f, 1f, 0, 0, 1f) },
+                onGameLost = { viewModel.endGame() },
                 onRestartGameClick = { viewModel.restartGame() },
                 onBackToMenuClick = { viewModel.backToMenu() }
             )

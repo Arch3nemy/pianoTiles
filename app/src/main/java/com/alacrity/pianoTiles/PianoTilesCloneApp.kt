@@ -38,15 +38,3 @@ fun PianoTilesApp(
         }
 
 }
-
-
-fun customShape(screenWidth: Float, screenHeight: Float) = object : Shape {
-    override fun createOutline(
-        size: Size,
-        layoutDirection: LayoutDirection,
-        density: Density
-    ): Outline {
-        return Outline.Rectangle(Rect(0f, 0f, screenWidth / 5, screenHeight))
-    }
-}
-
