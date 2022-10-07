@@ -40,6 +40,7 @@ import com.alacrity.pianoTiles.entity.PlayerScore
 import com.alacrity.pianoTiles.theme.*
 import com.alacrity.pianoTiles.ui.main.models.TileState
 import com.alacrity.pianoTiles.util.getScreenSize
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -57,12 +58,10 @@ fun Tile(
     val scope = rememberCoroutineScope()
     var tileState by remember { mutableStateOf(TileState(Color.DarkGray, true)) }
 
-    fun disableTileForDelay() {
-        scope.launch {
-            tileState = TileState(PressedTileColor, false)
-            delay(tileDisableDelay)
-            tileState = TileState(Color.DarkGray, true)
-        }
+    suspend fun disableTileForDelay() {
+        tileState = TileState(PressedTileColor, false)
+        delay(tileDisableDelay)
+        tileState = TileState(Color.DarkGray, true)
     }
 
     val context = LocalContext.current
@@ -86,12 +85,13 @@ fun Tile(
                 shape = RoundedCornerShape(5.dp)
             )
             .clickable(enabled = isAnimated && tileState.enabled) {
-
-                val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-                audioManager.playSoundEffect(FX_KEY_CLICK, 1.0f)
-
-                onClick()
-                disableTileForDelay()
+                scope.launch(Dispatchers.IO) {
+                    onClick()
+                    val audioManager =
+                        context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                    audioManager.playSoundEffect(FX_KEY_CLICK, 1.0f)
+                    disableTileForDelay()
+                }
             }
     )
 
@@ -280,9 +280,11 @@ fun EndGameMenu(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 20.dp)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 20.dp)
+                ) {
                     Text(
                         modifier = Modifier.fillMaxWidth(),
                         text = "$points",
@@ -291,7 +293,7 @@ fun EndGameMenu(
                     )
                     Text(
                         modifier = Modifier.fillMaxWidth(),
-                        text = "Points achieved",
+                        text = "Points earned",
                         style = PianoTilesTypography.h2,
                         textAlign = TextAlign.Center
                     )
